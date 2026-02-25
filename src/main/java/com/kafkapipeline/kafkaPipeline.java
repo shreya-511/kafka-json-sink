@@ -13,37 +13,17 @@ import java.util.Properties;
 
 public class kafkaPipeline {
 
+
     public static void main(String[] args) throws Exception {
-        // 1. LOAD CONFIG FROM RESOURCES (Inside the JAR)
-        Properties appProps = new Properties();
-
-        // Use the ClassLoader to find the file in the classpath
-        try (java.io.InputStream is = kafkaPipeline.class.getClassLoader()
-                .getResourceAsStream("application.properties")) {
-
-            if (is == null) {
-                System.err.println("CRITICAL: application.properties not found in src/main/resources!");
-                return;
-            }
-            appProps.load(is);
-            System.out.println("LOG: Configuration loaded successfully from Resources.");
-        } catch (IOException e) {
-            System.err.println("CRITICAL: Error reading config file: " + e.getMessage());
-            return;
-        }
-
-        // 2. EXTRACT VALUES (Same as before)
-        String bootstrap = appProps.getProperty("kafka.bootstrap", "localhost:9092");
-        String topic = appProps.getProperty("kafka.topic", "vehicle-data");
-        String group = appProps.getProperty("kafka.group", "test-group-" + System.currentTimeMillis());
-
-        // ... rest of your Consumer and Producer code ...
+        String bootstrap = System.getenv("KAFKA_BOOTSTRAP") != null ? System.getenv("KAFKA_BOOTSTRAP") : "localhost:9092";
+        String topic = System.getenv("KAFKA_TOPIC") != null ? System.getenv("KAFKA_TOPIC") : "vehicle-data";
+        String consumer_group = "test-group-" + System.currentTimeMillis();
 
 
         // 3. START BACKGROUND CONSUMER
         Properties cProps = new Properties();
         cProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap);
-        cProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, group);
+        cProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG,consumer_group);
         cProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         cProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         cProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
